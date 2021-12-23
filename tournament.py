@@ -3,14 +3,25 @@ from bs4 import Comment
 import requests
 import pandas as pd
 import json
-import httplib2
 from selenium import webdriver
 from selenium.webdriver import Chrome
 from time import sleep
 import numpy as np
 import copy
 import pandas as pd
+from webdriver_manager.chrome import ChromeDriverManager
 
+
+def parse2(url):
+	options = webdriver.ChromeOptions()
+	options.add_argument('--ignore-certificate-errors')
+	options.add_argument('--incognito')
+	options.add_argument('--headless')
+	driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+	driver.get(url)
+	sleep(3)
+	sourceCode = driver.page_source
+	return sourceCode
 
 def parse(url):
 	response = webdriver.Chrome()
@@ -104,9 +115,11 @@ def get_so_far(url):
 			bracket["2"].append(team3)
 
 	mydivs = soup.find_all("div", {"class": "slot userPickable"})
+	if len(mydivs) == 0:
+		mydivs = soup.find_all("span", {"class": "actual winner"})
 	teams = mydivs[0].find_all("span", {"class": "name"})
 	team1 = teams[0].text.strip()
-	team2 = teams[1].text.strip()
+	# team2 = teams[1].text.strip()
 	bracket["1"].append(team1)
 
 	bracket["points"] = 1920
@@ -211,18 +224,11 @@ def get_bracket(url):
 
 def get_group(group):
 	IDs = []
-
-	# http = httplib2.Http()
-	# status, response = http.request(group)
-
-	soup = BeautifulSoup(parse(group), features='html.parser')
-
+	soup = BeautifulSoup(parse2(group))
 	mydivs = soup.find_all("table", {"class": "type_entries"})
 	entries = mydivs[0].find_all("a", {"class": "entry"})
-
 	for entry in entries:
 		IDs.append((entry.get('href'), entry.text.strip()))
-
 	return IDs
 
 def comp_brackets_other(results, brackets, round_index=0, index=0):
@@ -307,6 +313,7 @@ IDs = get_group(dad_group)
 # 	   ('entry?entryID=37600596', 'smgilson 1'), ('entry?entryID=43377775', 'KMG2021'),
 # 	   ('entry?entryID=43902748', 'TGilly'), ('entry?entryID=38025176', 'JMGilly_1')]
 
+print(base_bracket_url + IDs[0][0])
 results, team_to_seed = get_so_far(base_bracket_url + IDs[0][0])
 
 # print(team_to_seed)
