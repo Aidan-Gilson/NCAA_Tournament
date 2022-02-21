@@ -4,6 +4,7 @@ import requests
 from Cleaned.constants import seed_order
 from Cleaned.parser import *
 
+#Gets the actual games and results that have been played
 def get_so_far(url):
     bracket = {"64": [], "32": [], "16": [], "8": [], "4": [], "2": [], "1": []}
     data = requests.get(url)
@@ -70,7 +71,7 @@ def get_so_far(url):
     bracket["points"] = 1920
     return bracket, team_to_seed
 
-
+#Gets the picks for a bracket for each game
 def get_bracket(url):
     bracket = {"64": [], "32": [], "16": [], "8": [], "4": [], "2": [], "1": [], "points": 0}
     data = requests.get(url)
@@ -171,7 +172,7 @@ def get_bracket(url):
 
     return bracket
 
-
+#Gets the IDs of all the participants in a group
 def get_group(group):
     IDs = []
     soup = BeautifulSoup(parse2(group))

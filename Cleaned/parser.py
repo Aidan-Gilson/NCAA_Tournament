@@ -4,6 +4,7 @@ from time import sleep
 
 from webdriver_manager.chrome import ChromeDriverManager
 
+#Webdriver parser used to extract the brackets
 def parse2(url):
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors')
