@@ -6,6 +6,7 @@ from Cleaned.parser import *
 
 #Gets the actual games and results that have been played
 def get_so_far(url):
+    print(url)
     bracket = {"64": [], "32": [], "16": [], "8": [], "4": [], "2": [], "1": []}
     data = requests.get(url)
     soup = BeautifulSoup(data.text, features='html.parser')
@@ -13,13 +14,10 @@ def get_so_far(url):
     team_to_seed = {}
     for x in range(1, 64):
         class_i = "matchup m_" + str(x)
-
         mydivs = soup.find_all("div", {"class": class_i})
-
         if mydivs == []:
             class_ii = class_i + " userPickable"
             mydivs = soup.find_all("div", {"class": class_ii})
-
             if mydivs == []:
                 class_ii = class_i + " homeOnBottom" + " userPickable"
                 mydivs = soup.find_all("div", {"class": class_ii})

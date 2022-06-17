@@ -47,7 +47,7 @@ def comp_brackets(results, brackets, round_index=0, index=0):
             return comp_brackets_other(results, brackets, next_round_index, next_index)
 
 
-def comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, round_index=0, index=0, likelihood=1):
+def comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, likelihoods, team_id, round_index=0, index=0, likelihood=1):
     bracket_scores = [[0 for x in range(len(brackets))] for y in range(len(brackets))]
 
     # Scores the brackets this way if the round is completed.
@@ -61,7 +61,7 @@ def comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed
         ordered = sorted(ordered, key=lambda x: x[1], reverse=True)
         for x in range(len(ordered)):
             bracket_scores[ordered[x][0]][x] = 1
-        return np.array(bracket_scores), game_to_results
+        return np.array(bracket_scores), game_to_results, likelihoods
     else:
         # Checks if we have checked every game in a round
         if index == int(rounds[round_index]) - 1:
@@ -84,33 +84,39 @@ def comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed
             # Finds the likelihood of this team actually winning the match
             update1 = seed_vs_seed[team_to_seed[options[0]]][team_to_seed[options[1]]]
             # Starts the new recursion.
-            branch1, game_to_results = comp_brackets_weighted(results_copy, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results,
+            branch1, game_to_results, likelihoods = comp_brackets_weighted(results_copy, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, likelihoods, team_id,
                                              next_round_index, next_index,
                                              likelihood * update1)
-            if options[0] in game_to_results[round_index][index]:
-                game_to_results[round_index][index][options[0]]['result'] = (game_to_results[round_index][index][options[0]]['likelihood'] * game_to_results[round_index][index][options[0]]['result'] + likelihood * update1 * branch1) / (game_to_results[round_index][index][options[0]]['likelihood'] + update1 * likelihood)
-                game_to_results[round_index][index][options[0]]['likelihood'] = game_to_results[round_index][index][options[0]]['likelihood'] + likelihood * update1
-            else:
-                game_to_results[round_index][index][options[0]] = {'result': branch1, 'likelihood':  likelihood * update1}
+
+            game_to_results[round_index][team_id[options[0]]] = (likelihoods[round_index][team_id[options[0]]] * game_to_results[round_index][team_id[options[0]]] + likelihood * update1 * branch1) / (likelihoods[round_index][team_id[options[0]]] + update1 * likelihood)
+            likelihoods[round_index][team_id[options[0]]] = likelihoods[round_index][team_id[options[0]]] + likelihood * update1
+            # if options[0] in game_to_results[round_index][index]:
+            #     game_to_results[round_index][index][options[0]]['result'] = (game_to_results[round_index][index][options[0]]['likelihood'] * game_to_results[round_index][index][options[0]]['result'] + likelihood * update1 * branch1) / (game_to_results[round_index][index][options[0]]['likelihood'] + update1 * likelihood)
+            #     game_to_results[round_index][index][options[0]]['likelihood'] = game_to_results[round_index][index][options[0]]['likelihood'] + likelihood * update1
+            # else:
+            #     game_to_results[round_index][index][options[0]] = {'result': branch1, 'likelihood':  likelihood * update1}
             # Create a new branch if the second team wins the game
             results_copy = copy.deepcopy(results)
             results_copy[rounds[round_index]][index] = options[1]
             update2 = seed_vs_seed[team_to_seed[options[1]]][team_to_seed[options[0]]]
-            branch2, game_to_results = comp_brackets_weighted(results_copy, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results,
+            branch2, game_to_results, likelihoods = comp_brackets_weighted(results_copy, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, likelihoods, team_id,
                                              next_round_index, next_index,
                                              likelihood * update2)
-            if options[1] in game_to_results[round_index][index]:
-                game_to_results[round_index][index][options[1]]['result'] = (game_to_results[round_index][index][options[1]]['likelihood'] * game_to_results[round_index][index][options[1]]['result'] + likelihood * update2 * branch1) / (game_to_results[round_index][index][options[1]]['likelihood'] + update2 * likelihood)
-                game_to_results[round_index][index][options[1]]['likelihood'] = game_to_results[round_index][index][options[1]]['likelihood'] + likelihood * update2
-            else:
-                game_to_results[round_index][index][options[1]] = {'result': branch2, 'likelihood': likelihood * update2}
+
+            game_to_results[round_index][team_id[options[1]]] = (likelihoods[round_index][team_id[options[1]]] * game_to_results[round_index][team_id[options[1]]] + likelihood * update2 * branch2) / (likelihoods[round_index][team_id[options[1]]] + update2 * likelihood)
+            likelihoods[round_index][team_id[options[1]]] = likelihoods[round_index][team_id[options[1]]] + likelihood * update2
+            # if options[1] in game_to_results[round_index][index]:
+            #     game_to_results[round_index][index][options[1]]['result'] = (game_to_results[round_index][index][options[1]]['likelihood'] * game_to_results[round_index][index][options[1]]['result'] + likelihood * update2 * branch1) / (game_to_results[round_index][index][options[1]]['likelihood'] + update2 * likelihood)
+            #     game_to_results[round_index][index][options[1]]['likelihood'] = game_to_results[round_index][index][options[1]]['likelihood'] + likelihood * update2
+            # else:
+            #     game_to_results[round_index][index][options[1]] = {'result': branch2, 'likelihood': likelihood * update2}
 
 
             total_branch = np.add(branch1 * update1, branch2 * update2)
-            return total_branch, game_to_results
+            return total_branch, game_to_results, likelihoods
 
         # If the game has been played
         else:
-            return comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, next_round_index,
+            return comp_brackets_weighted(results, brackets, team_to_seed, rounds, seed_vs_seed, game_to_results, likelihoods, team_id, next_round_index,
                                           next_index,
                                           likelihood)
