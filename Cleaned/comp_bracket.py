@@ -1,7 +1,7 @@
 import numpy as np
-from Cleaned.score_bracket import score_bracket
-from Cleaned.constants import seed_vs_seed
-from Cleaned.constants import *
+from score_bracket import score_bracket
+from constants import seed_vs_seed
+from constants import *
 import copy
 
 

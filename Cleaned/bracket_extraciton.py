@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
 
-from Cleaned.constants import seed_order
-from Cleaned.parser import *
+from constants import seed_order
+from parser import *
 
 #Gets the actual games and results that have been played
 def get_so_far(url):

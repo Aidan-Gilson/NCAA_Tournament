@@ -1,4 +1,4 @@
-from Cleaned.constants import rounds_points
+from constants import rounds_points
 
 def score_bracket(bracket, results):
     points = 0
